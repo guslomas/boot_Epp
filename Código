@@ -1,0 +1,225 @@
+// This is your code file.
+const scriptProperties = PropertiesService.getScriptProperties();
+const TOKEN = scriptProperties.getProperty('apiKey');
+const URL_APIT = scriptProperties.getProperty('URLAPI_TELEGRAM');
+const URL_APPCRIPTM = scriptProperties.getProperty('URL_APPSCRIPT1');
+
+const TELEGRAM_URL = URL_APIT + TOKEN;
+
+const fecha = new Date();
+
+// CONFIGURACIÓN DE HOJAS
+const SS = SpreadsheetApp.getActiveSpreadsheet();
+let sheet = SS.getActiveSheet();
+const CONFIG_HOJAS = {
+    LOG: SS.getActiveSheet(),
+    PEDIDOS: SS.getSheetByName("pedidos") || SS.insertSheet("pedidos")
+};
+
+// setWebhook
+function setWebhook() {
+    const response = UrlFetchApp.fetch(TELEGRAM_URL + "/setWebhook?url=" + URL_APPCRIPTM);
+    console.log(response.getContentText());
+}
+
+function doPost(e) {
+
+    try {
+        const contents = JSON.parse(e.postData.contents);
+        const msg = contents.message;
+        // CASO A: El usuario envió un mensaje de texto
+        if (msg && msg.text) {
+            const chatId = msg.chat.id;
+            const text = msg.text;
+            const name = msg.from.first_name;
+
+            // REVISAR SI ES UNA RESPUESTA A "INGRESE KIT"
+
+            if (msg.reply_to_message) {
+                const textoOriginal = msg.reply_to_message.text;
+                // Si el mensaje al que responde contiene la palabra clave "Registro" o "número"
+                if (textoOriginal.includes("Escribe la cant que") || textoOriginal.includes("Registro")) {
+                    // EXTRAEMOS EL PRODUCTO: Buscamos lo que está entre corchetes [ ]
+                    const match = textoOriginal.match(/\[(.*?)\]/);
+                    const producto = match ? match[1] : "Desconocido";
+                    return gestionarRegistroKit(chatId, producto, name, text);
+                }
+            }
+
+            //Mensaje de bienvenida
+            const bienvenida = `biembenidos ${name} a lo maximo. has tu enviado: ${text}.Sigue!`;
+            sendMessage(chatId, bienvenida);
+            //agregar registro en la hoja de cálculo
+            CONFIG_HOJAS.LOG.appendRow([fecha, name, text, chatId]);
+            enviarMenuPrincipal(chatId);
+
+
+
+            // CASO B: El usuario presionó un botón (Callback Query)
+            if (data === "k_Subproductos") {
+                solicitarNumeroKit(chatId, "K Subproductos");
+            } else if (data === "K_Coque") {
+                solicitarNumeroKit(chatId, "K Coque");
+            } else if (ACCIONES_BOTONES[data]) {
+                ACCIONES_BOTONES[data](chatId);
+            }
+
+            /* if (contents.callback_query) {
+              const cb = contents.callback_query;
+              const chatId = cb.message.chat.id;
+              const data = cb.data; // El valor de 'callback_data' del botón presionado
+        
+              // Buscamos si existe una función asociada a ese texto
+              const funcionAEjecutar = ACCIONES_BOTONES[data];
+        
+              if (typeof funcionAEjecutar === "function") {
+                // ¡Aquí ocurre la magia! Se ejecuta la función correspondiente
+                funcionAEjecutar(chatId); */
+        } else {
+            sendMessage(chatId, "⚠️ Acción no implementada.");
+        }
+
+        // IMPORTANTE: Notificar a Telegram que recibimos el clic (quita el reloj de arena del botón)
+        answerCallback(cb.id);
+    }
+
+    catch (err) {
+
+        console.error("Error en doPost: ", err.toString());
+
+    }
+    return HtmlService.createHtmlOutput();
+    // fin del DO POST
+}
+
+// funciones auxiliares
+function enviarMenuPrincipal(chatId) {
+    const keyboard = {
+        inline_keyboard: [
+            [{ text: "💱 K Subproductos", callback_data: "k_Subproductos" }, { text: "⚫ K Coque", callback_data: "K_Coque" }],
+            [{ text: "📊 Mis Pedidos", callback_data: "ver_datos" }]
+        ]
+    };
+    sendMessage(chatId, "<b>Menú Principal</b>\nSelecciona una opción:", keyboard);
+}
+
+// --- FUNCIONES ESPECÍFICAS ---
+
+/* const ACCIONES_BOTONES = {
+  "k_Subproductos": ejecutarK_Subproductos,
+  "K_Coque": ejecutarCita,
+  "soporte_humano": ejecutarSoporte,
+  "ver_datos": ejecutarDatos
+}; */
+
+function ejecutarK_Subproductos(chatId) {
+    // Aquí podrías leer la hoja de cálculo
+    sendMessage(chatId, "💰 Consultando el sistema... Tu saldo es <b>$1,800</b>.");
+    /* const k_s = subproducto */
+    solicitarNumeroKit(chatId);
+}
+
+function ejecutarCita(chatId) {
+    sendMessage(chatId, "📅 Redirigiendo al sistema de turnos... [Enlace]");
+}
+
+function ejecutarSoporte(chatId) {
+    sendMessage(chatId, "🎧 Un asesor ha sido notificado y te escribirá pronto.");
+}
+/**
+ * Busca datos específicos del usuario en la hoja activa.
+ * @param {number|string} chatId - El ID del chat para filtrar.
+ * @return {string} Un mensaje formateado con los datos encontrados.
+ */
+function ejecutarDatos(chatId) {
+
+    try {
+        /* const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet(); */
+        const nombreHoja = sheet.getName();
+        const data_Sheet = sheet.getDataRange().getValues(); // Leemos todo una sola vez (Eficiencia)
+        // Ejemplo de lectura de la hoja activa
+
+        sendMessage(chatId, `📊 Estás registrado en la hoja de sheet: <b>${nombreHoja}</b>`);
+        // Buscamos la fila donde la columna D (índice 3) coincida con el chatId
+        const filaUsuario = data_Sheet.find(fila => fila[3] == chatId);
+
+        if (filaUsuario) {
+            // filaUsuario[0] = Fecha, [1] = Nombre, [2] = Último mensaje
+
+            sendMessage(chatId, `📊 <b>Tus Datos:</b>\n\n` +
+                `👤 <b>Nombre:</b> ${filaUsuario[1]}\n` +
+                `📝 <b>Último registro:</b> ${filaUsuario[2]}\n` +
+                `📅 <b>Fecha:</b> ${Utilities.formatDate(filaUsuario[0], "GMT-3", "dd/MM/yyyy")}`);
+        } else {
+            sendMessage(chatId, "❌ No encontré registros vinculados a tu ID.");
+        }
+    } catch (err) {
+        sendMessage(chatId, "⚠️ Error al acceder a la base de datos.");
+    }
+}
+
+/**
+ * Paso 2: Recibe el número y lo guarda en la hoja "saldos"
+ */
+function gestionarRegistroKit(chatId, producto, name, cantidadTexto) {
+    const cantidad = parseFloat(cantidadTexto.replace(',', '.')); // Convertir a número válido
+
+    if (isNaN(cantidad)) {
+        sendMessage(chatId, "❌ Error: Por favor envía solo números (ej: 1500).");
+        return;
+    }
+
+    // Guardar en hoja "saldos": Fecha | Nombre | Monto | ID
+    CONFIG_HOJAS.PEDIDOS.appendRow([fecha, name, cantidad, producto, chatId]);
+
+    sendMessage(chatId, `✅ <b>Registrado con éxito</b>\nSe agregó ${cantidad} <b>${producto}</b> a la hoja de cálculo.`);
+}
+
+function solicitarNumeroKit(chatId, tipoProducto) {
+    const payload = {
+        chat_id: chatId,
+        text: `💰 <b>Modo Registro de Kits</b>\nProducto: [${tipoProducto}]\n\nEscribe la cant que deseas agregar:`,
+        parse_mode: "HTML",
+        reply_markup: JSON.stringify({ force_reply: true, selective: true, input_field_placeholder: "Ejemplo: 3" }) // Esto abre el teclado automáticamente
+    };
+    UrlFetchApp.fetch(`${TELEGRAM_URL}/sendMessage`, {
+        method: "post",
+        contentType: "application/json",
+        payload: JSON.stringify(payload)
+    });
+}
+// Funciones de comunicaciones
+function sendMessage(chatId, text, keyboard = null) {
+    const payload = { chat_id: chatId, text: text, parse_mode: "HTML" };
+    if (keyboard) payload.reply_markup = JSON.stringify(keyboard);
+    return fetchTelegram("sendMessage", payload);
+}
+
+function answerCallback(callbackId, text = null, showAlert = false) {
+
+    return fetchTelegram("answerCallbackQuery",
+        { callback_query_id: callbackId });
+}
+
+function fetchTelegram(metodo, payload) {
+    return UrlFetchApp.fetch(`${TELEGRAM_URL}/${metodo}`, {
+        method: "post",
+        contentType: "application/json",
+        payload: JSON.stringify(payload),
+        muteHttpExceptions: true
+    });
+}
+
+
+
+function obtenerNombreHojaActiva() {
+    // Obtiene la hoja de cálculo activa
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    // Obtiene la hoja activa dentro de la hoja de cálculo
+    var hoja = ss.getActiveSheet();
+    // Obtiene el nombre de la hoja activa
+    var nombreHoja = hoja.getName();
+    var hoj = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    hoj.appendRow(["Dato Columna A", "Dato Columna B", "Dato Columna C"]);
+    Logger.log("El nombre de la hoja activa es: " + nombreHoja);
+};
