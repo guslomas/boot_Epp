@@ -3,11 +3,6 @@
  */
 const scriptProperties = PropertiesService.getScriptProperties();
 const CONFIG = {
-  /* TOKEN: scriptProperties.getProperty('apiKey'),
-  URL_BASE: scriptProperties.getProperty('URLAPI_TELEGRAM'),
-  WEBHOOK: scriptProperties.getProperty('URL_APPSCRIPT1'),
-  get API_URL() { return `${this.URL_BASE}${this.TOKEN}`; } */
-
 
   TELEGRAM: {
     TOKEN: scriptProperties.getProperty('apiKey'),
@@ -45,6 +40,34 @@ const ACCIONES_BOTONES = {
   "barbijos": "Barbijos",
   "p_audit": "P Audit",
   "D_Gases": "D Gases",
+  "herramientas": "Herramientas",
+  "electricas": "Electricas",
+  "manuales": "Manuales",
+  "insumos": "Insumos",
+  "taladro": "Taladro",
+  "rotomartillo": "Rotomartillo",
+  "inalambrico": "Inalambrico Atornillador",
+  "amoladora4": "Amoladora 4½“",
+  "amoladora7": "Amoladora 7“",
+  "soldadora_Chica": "Soldadora Chica",
+  "soldadora_Grande": "Soldadora Grande",
+  "soldadora_Mediana": "Soldadora Mediana",
+  "sopladora": "Sopladora",
+  "aspiradora": "Aspiradora",
+  "pistola_calor": "Pistola de Calor",
+  "megger": "Megger",
+  "roscadora": "Roscadora",
+  "alarges": "Alarges",
+  "alarges_sold": "Alarges Sold",
+  "crimpadora": "Crimpadora",
+  "cizalla": "Cizalla",
+  "remachadora": "Remachadora",
+  "autógena": "Autógena",
+  "pistola de calor": "Pistola de Calor",
+  "cizalla": "Cizalla",
+  "remachadora": "Remachadora",
+  "autógena": "Autógena",
+  "sierra_sable": "Sierra sable",
 };
 
 
@@ -120,7 +143,15 @@ function doPost(e) {
           ejecutarDatos(chatId);
         } else if (data === "epp") {
           MenuEpp(chatId);
-        } else {
+        } else if (data === "herramientas") {
+          MenuHerr_Manu_Elect(chatId);
+        } else if (data === "electricas") {
+          MenuElectricas(chatId);
+        } else if (data === "manuales") {
+          Menu_Herr_manuales(chatId);
+        }
+
+        else {
           // Esta es la parte que solicita la cantidad
           solicitarNumeroKit(chatId, ACCIONES_BOTONES[data]);
         }
@@ -178,7 +209,7 @@ function gestionarRegistroKit(chatId, producto, name, cantidadTexto) {
 function enviarMenuPrincipal(chatId) {
   const keyboard = {
     inline_keyboard: [
-      [{ text: "🛠HERRAMIENTAS", callback_data: "herramientas" }],
+      [{ text: "🛠HERRAMIENTAS", callback_data: "herramientas" }, { text: "🛒 INSUMOS", callback_data: "insumos" }],
       [{ text: "💱 K Subproductos", callback_data: "k_Subproductos" }, { text: "⚫ K Coque", callback_data: "K_Coque" }, { text: "🎆 K Sold", callback_data: "K_Sold" }],
       [{ text: "🔐🧰 C Candados", callback_data: "c_Candados" }, { text: "♨ D Gases", callback_data: "D_Gases" }, { text: "⛑🚧 Epp", callback_data: "epp" }],
       [{ text: "📊 Mis Pedidos", callback_data: "ver_datos" }]
@@ -198,27 +229,43 @@ function MenuEpp(chatId) {
   TelegramService.sendMessage(chatId, "<b>Menú EPP</b>\nSelecciona una opción:", keyboard);
 }
 
+// menu Herramientas
+function MenuHerr_Manu_Elect(chatId) {
+  const keyboard = {
+    inline_keyboard: [
+      [{ text: "⚡ Electricas", callback_data: "electricas" }, { text: "🦾 Manuales", callback_data: "manuales" }]
+    ]
+  };
+  TelegramService.sendMessage(chatId, "<b>Menú Herramientas</b>\nSelecciona una opción:", keyboard);
+}
+// menu Herramientas electricas
+function MenuElectricas(chatId) {
+  const keyboard = {
+    inline_keyboard: [
+      [{ text: "🐦 Taladro", callback_data: "taladro" }, { text: "🔨 Rotomartillo", callback_data: "rotomartillo" }, { text: "🌌 Inalambrico Atornillador", callback_data: "inalambrico" }],
+      [{ text: "💿 Amoladora 4½“ ", callback_data: "amoladora4" }, { text: "📀 Amoladora 7“ ", callback_data: "amoladora7" }],
+      [{ text: "🌠 Soldadora Chica", callback_data: "soldadora_Chica" }, { text: "🌟 Soldadora Grande", callback_data: "soldadora_Grande" }, { text: "⭐ Soldadora Mediana", callback_data: "soldadora_Mediana" }],
+      [{ text: "🌬 Sopladora", callback_data: "sopladora" }, { text: "🪂 Aspiradora", callback_data: "aspiradora" }, { text: "🔥 Pistola de Calor", callback_data: "pistola_calor" }],
+      [{ text: "🌩 Megger", callback_data: "megger" }, { text: "🌟 Sierra sable ", callback_data: "sierra_sable" }, { text: "🌩 Roscadora", callback_data: "roscadora" }],
+      [{ text: "💫 Alarges", callback_data: "alarges" }, { text: "💥 Alarges Sold", callback_data: "alarges_sold" }],
 
-/* function sendMessage(chatId, text, keyboard = null) {
-  const payload = { chat_id: chatId, text: text, parse_mode: "HTML", reply_markup: keyboard ? JSON.stringify(keyboard) : undefined };
-  if (keyboard) payload.reply_markup = JSON.stringify(keyboard);
-  return fetchTelegram("sendMessage", payload);
-} */
+    ]
+  };
+  TelegramService.sendMessage(chatId, "<b>Menú Herramientas Electricas</b>\nSelecciona una opción:", keyboard);
+}
 
-
-/* function fetchTelegram(metodo, payload) {
-  return UrlFetchApp.fetch(`${CONFIG.API_URL}/${metodo}`, {
-    method: "post",
-    contentType: "application/json",
-    payload: JSON.stringify(payload),
-    muteHttpExceptions: true
-  });
-} */
-
-
-/* function answerCallback(id) {
-  return fetchTelegram("answerCallbackQuery", { callback_query_id: id });
-} */
+// menu Herramientas Manuales
+function Menu_Herr_manuales(chatId) {
+  const keyboard = {
+    inline_keyboard: [
+      [{ text: "🍜 Crimpadora", callback_data: "crimpadora" }, { text: "🍽 Cizalla", callback_data: "cizalla" }, { text: "💿 Remachadora  ", callback_data: "remachadora" }],
+      [{ text: "🕐🧳 Autógena", callback_data: "autógena" }, { text: "🔧 Llave golpe ", callback_data: "llave_golpe" }], 
+      [{ text: "🍴 Sierra ", callback_data: "sierra" }, { text: "🧯 Matafuego", callback_data: "matafuego" }],
+      [{ text: " 🍾 Mecha acero", callback_data: "🍢 mecha_acero" }, { text: "⚙️ Mecha vidia", callback_data: "mecha_vidia" }, { text: "🥂 Mecha copa", callback_data: "mecha_copa" }],
+    ]
+  };
+  TelegramService.sendMessage(chatId, "<b>Menú Herramientas Manuales</b>\nSelecciona una opción:", keyboard);
+}
 /**
  * Busca datos específicos del usuario en la hoja activa.
  * @param {number|string} chatId - El ID del chat para filtrar.
@@ -266,11 +313,7 @@ function ejecutarDatos(chatId) {
             ]]
           };
         };
-        /* const tecladoEliminar = {
-          inline_keyboard: [[
-            { text: "❌ Eliminar este pedido", callback_data: `borrar_${producto}` }
-          ]]
-        }; */
+
 
 
         // ENVIAMOS UNA BURBUJA INDEPENDIENTE
