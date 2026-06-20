@@ -15,15 +15,19 @@ const CONFIG = {
 };
 /** * Acceso a Hojas con inicialización perezosa (Lazy Loading)
  */
-const getSheets = () => {
-  const SS = SpreadsheetApp.getActiveSpreadsheet();
-  /* const sheet = SS.getActiveSheet();
-  const CONFIG_HOJAS = {*/
-  return {
-    LOG: SS.getActiveSheet(),
-    PEDIDOS: SS.getSheetByName("pedidos") || SS.insertSheet("pedidos")
+const getSheets = (() => {
+  let _sheets = null;
+  return () => {
+    if (!_sheets) {
+      const SS = SpreadsheetApp.getActiveSpreadsheet();
+      _sheets = {
+        LOG: SS.getSheetByName("pedidos"),
+        PEDIDOS: SS.getSheetByName("pedidos") || SS.insertSheet("pedidos")
+      };
+    }
+    return _sheets;
   };
-};
+})();
 /**
  * MAPEADO DE ACCIONES (Global)
  * Centraliza los nombres de los productos para que sean fáciles de mantener.
@@ -60,14 +64,24 @@ const ACCIONES_BOTONES = {
   "alarges": "Alarges",
   "alarges_sold": "Alarges Sold",
   "crimpadora": "Crimpadora",
-  "cizalla": "Cizalla",
+  
   "remachadora": "Remachadora",
-  "autógena": "Autógena",
+  
   "pistola de calor": "Pistola de Calor",
   "cizalla": "Cizalla",
-  "remachadora": "Remachadora",
+  
   "autógena": "Autógena",
   "sierra_sable": "Sierra sable",
+  "cinta_vallar": "Cinta vallar",
+  "electrodos": "Electrodos",
+  "disco_Amolar_4": "Disco de Amolar 4,5”",
+  "disco_Amolar_7": "Disco de Amolar 7”",
+  "llave_golpe": "Llave golpe",
+  "sierra": "Sierra",
+  "matafuego": "Matafuego", 
+  "mecha_acero": "Mecha acero", 
+  "mecha_vidia": "Mecha vidia", 
+  "mecha_copa": "Mecha copa",
 };
 
 
@@ -149,7 +163,10 @@ function doPost(e) {
           MenuElectricas(chatId);
         } else if (data === "manuales") {
           Menu_Herr_manuales(chatId);
-        }
+        
+        } else if (data === "insumos") {
+          Menu_insumos(chatId);
+      }
 
         else {
           // Esta es la parte que solicita la cantidad
@@ -248,6 +265,7 @@ function MenuElectricas(chatId) {
       [{ text: "🌬 Sopladora", callback_data: "sopladora" }, { text: "🪂 Aspiradora", callback_data: "aspiradora" }, { text: "🔥 Pistola de Calor", callback_data: "pistola_calor" }],
       [{ text: "🌩 Megger", callback_data: "megger" }, { text: "🌟 Sierra sable ", callback_data: "sierra_sable" }, { text: "🌩 Roscadora", callback_data: "roscadora" }],
       [{ text: "💫 Alarges", callback_data: "alarges" }, { text: "💥 Alarges Sold", callback_data: "alarges_sold" }],
+      [{ text: "📊 Mis Pedidos", callback_data: "ver_datos" }]
 
     ]
   };
@@ -262,9 +280,22 @@ function Menu_Herr_manuales(chatId) {
       [{ text: "🕐🧳 Autógena", callback_data: "autógena" }, { text: "🔧 Llave golpe ", callback_data: "llave_golpe" }], 
       [{ text: "🍴 Sierra ", callback_data: "sierra" }, { text: "🧯 Matafuego", callback_data: "matafuego" }],
       [{ text: " 🍾 Mecha acero", callback_data: "🍢 mecha_acero" }, { text: "⚙️ Mecha vidia", callback_data: "mecha_vidia" }, { text: "🥂 Mecha copa", callback_data: "mecha_copa" }],
+      [{ text: "📊 Mis Pedidos", callback_data: "ver_datos" }]
     ]
   };
   TelegramService.sendMessage(chatId, "<b>Menú Herramientas Manuales</b>\nSelecciona una opción:", keyboard);
+}
+
+// crea una funcion parecida a function Menu_Herr_manuales pero con insumos como electrodos cinta de ballar
+function Menu_insumos(chatId) {
+  const keyboard = {
+    inline_keyboard: [
+      [{ text: "🚧 Cinta vallar", callback_data: "cinta_vallar" }, { text: "🧨 Electrodos", callback_data: "electrodos" } ],
+      [{ text: "💿 Disco de Amolar 4,5”", callback_data: "disco_Amolar_4" }, { text: "📀 Disco de Amolar 7”", callback_data: "disco_Amolar_7" }], 
+      [{ text: "📊 Mis Pedidos", callback_data: "ver_datos" }]
+    ]
+  };
+  TelegramService.sendMessage(chatId, "<b>Menú Insumos</b>\nSelecciona una opción:", keyboard);
 }
 /**
  * Busca datos específicos del usuario en la hoja activa.
@@ -301,7 +332,7 @@ function ejecutarDatos(chatId) {
           `━━━━━━━━━━━━━━━━━━\n` +
           `🔹 <b>Product:</b> ${cantidad[3]} <b>Cant<b>🔢 ${cantidad[2]}</b>\n` +
           ` <b>Estado:</b>🚦${cantidad[5]}</b>\n` +
-          `📅 <b>Fecha:</b> ${fechaFormateada}`;
+          `� <b>Fecha:</b> ${fechaFormateada}`;
 
 
         // Agregamos el botón de eliminar pasando el número de fila
@@ -520,4 +551,3 @@ const TelegramService = {
     return this.fetch("editMessageText", payload);
   }
 };
-
