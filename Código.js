@@ -33,55 +33,63 @@ const getSheets = (() => {
  * Centraliza los nombres de los productos para que sean fáciles de mantener.
  */
 const ACCIONES_BOTONES = {
-  "k_Subproductos": "K Subproductos",
-  "K_Sold": "K Sold",
-  "K_Coque": "K Coque",
+  // --- MENÚ PRINCIPAL Y ACCIONES GLOBALES ---
   "ver_datos": "VER_DATOS",
-  "c_Candados": "C Candados",
+  "herramientas": "Herramientas",
+  "insumos": "Insumos",
   "epp": "EPP",
+  "k_Subproductos": "K Subproductos",
+  "K_Coque": "K Coque",
+  "K_Sold": "K Sold",
+  "c_Candados": "C Candados",
+  "D_Gases": "D Gases",
+
+  // --- SUBMENÚ: EPP ---
   "lentes": "Lentes",
   "guantes": "Guantes",
   "barbijos": "Barbijos",
   "p_audit": "P Audit",
-  "D_Gases": "D Gases",
-  "herramientas": "Herramientas",
-  "electricas": "Electricas",
-  "manuales": "Manuales",
-  "insumos": "Insumos",
+
+  // --- SUBMENÚ: HERRAMIENTAS ---
+  "electricas": "Electricas", // Abre el submenú de Herramientas Eléctricas
+  "manuales": "Manuales",     // Abre el submenú de Herramientas Manuales
+
+  // --- SUB-SUBMENÚ: HERRAMIENTAS ELÉCTRICAS ---
   "taladro": "Taladro",
   "rotomartillo": "Rotomartillo",
   "inalambrico": "Inalambrico Atornillador",
   "amoladora4": "Amoladora 4½“",
   "amoladora7": "Amoladora 7“",
+  "sierra_sable": "Sierra sable",
   "soldadora_Chica": "Soldadora Chica",
   "soldadora_Grande": "Soldadora Grande",
   "soldadora_Mediana": "Soldadora Mediana",
   "sopladora": "Sopladora",
   "aspiradora": "Aspiradora",
   "pistola_calor": "Pistola de Calor",
+  // "pistola de calor": "Pistola de Calor", // Clave duplicada y no utilizada, se puede eliminar.
   "megger": "Megger",
   "roscadora": "Roscadora",
   "alarges": "Alarges",
   "alarges_sold": "Alarges Sold",
+
+  // --- SUB-SUBMENÚ: HERRAMIENTAS MANUALES ---
   "crimpadora": "Crimpadora",
-  
   "remachadora": "Remachadora",
-  
-  "pistola de calor": "Pistola de Calor",
   "cizalla": "Cizalla",
-  
   "autógena": "Autógena",
-  "sierra_sable": "Sierra sable",
-  "cinta_vallar": "Cinta vallar",
-  "electrodos": "Electrodos",
-  "disco_Amolar_4": "Disco de Amolar 4,5”",
-  "disco_Amolar_7": "Disco de Amolar 7”",
   "llave_golpe": "Llave golpe",
   "sierra": "Sierra",
   "matafuego": "Matafuego", 
   "mecha_acero": "Mecha acero", 
   "mecha_vidia": "Mecha vidia", 
   "mecha_copa": "Mecha copa",
+
+  // --- SUBMENÚ: INSUMOS ---
+  "cinta_vallar": "Cinta vallar",
+  "electrodos": "Electrodos",
+  "disco_Amolar_4": "Disco de Amolar 4,5”",
+  "disco_Amolar_7": "Disco de Amolar 7”",
 };
 
 
